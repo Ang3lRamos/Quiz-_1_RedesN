@@ -23,7 +23,8 @@ def obtener_recomendacion():
     env.build("""
     (deftemplate cliente
         (slot preferencia)
-        (slot presupuesto))
+        (slot presupuesto)
+        (slot clima))
     """)
 
     # Definir el hecho 'destino' con sus atributos
@@ -38,9 +39,10 @@ def obtener_recomendacion():
     # Obtener las entradas del usuario desde los comboboxes
     preferencia = entrada_preferencia.get()
     presupuesto = entrada_presupuesto.get()
+    clima = entrada_clima.get()
 
     # Definir hechos en CLIPS basados en la entrada del usuario
-    env.assert_string(f"(cliente (preferencia {preferencia}) (presupuesto {presupuesto}))")
+    env.assert_string(f"(cliente (preferencia {preferencia}) (presupuesto {presupuesto}) (clima {clima}))")
 
     # Definir destinos
     destinos = [
@@ -80,18 +82,10 @@ def obtener_recomendacion():
     # Definir reglas para recomendación
     env.build("""
     (defrule recomendar-destino
-       (cliente (preferencia ?tipo) (presupuesto ?costo))
-       (destino (nombre ?nombre) (tipo ?tipo) (costo ?costo))
+       (cliente (preferencia ?tipo) (presupuesto ?costo) (clima ?clima))
+       (destino (nombre ?nombre) (tipo ?tipo) (costo ?costo) (clima ?clima))
        =>
        (capturar_salida (str-cat "Recomendamos el destino: " ?nombre "\n")))
-    """)
-
-    # Regla de fallback
-    env.build("""
-    (defrule recomendar-default
-       (cliente (preferencia ?tipo) (presupuesto ?costo))
-       =>
-       (capturar_salida "No se encontró un destino exacto, pero recomendamos explorar otras opciones interesantes.\n"))
     """)
 
     # Ejecutar el motor de inferencia
@@ -106,18 +100,31 @@ def obtener_recomendacion():
 # Crear la ventana principal
 root = tk.Tk()
 root.title("Destinos Perfectos - Sistema Experto")
+root.geometry("400x200")
+root.configure(bg="#f0f0f0")
+
+# Configuración de estilo
+style = ttk.Style()
+style.configure("TLabel", font=("Arial", 12), background="#f0f0f0")
+style.configure("TButton", font=("Arial", 12), background="#d3d3d3")
+style.configure("TCombobox", font=("Arial", 12))
 
 # Etiquetas y campos de entrada con Combobox
-tk.Label(root, text="Preferencia:").grid(row=0)
+tk.Label(root, text="Preferencia:", bg="#f0f0f0").grid(row=0, column=0, padx=10, pady=10, sticky="e")
 entrada_preferencia = ttk.Combobox(root, values=["cultural", "aventura", "relajacion", "lujo"])
-entrada_preferencia.grid(row=0, column=1)
+entrada_preferencia.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="Presupuesto:").grid(row=1)
+tk.Label(root, text="Presupuesto:", bg="#f0f0f0").grid(row=1, column=0, padx=10, pady=10, sticky="e")
 entrada_presupuesto = ttk.Combobox(root, values=["alto", "medio", "bajo"])
-entrada_presupuesto.grid(row=1, column=1)
+entrada_presupuesto.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+
+tk.Label(root, text="Clima preferido:", bg="#f0f0f0").grid(row=2, column=0, padx=10, pady=10, sticky="e")
+entrada_clima = ttk.Combobox(root, values=["templado", "tropical", "frio", "calido"])
+entrada_clima.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
 # Botón para obtener la recomendación
-tk.Button(root, text="Obtener Recomendación", command=obtener_recomendacion).grid(row=2, columnspan=2)
+obtener_button = ttk.Button(root, text="Obtener Recomendación", command=obtener_recomendacion)
+obtener_button.grid(row=3, columnspan=2, pady=20)
 
 # Ejecutar la aplicación
 root.mainloop()
